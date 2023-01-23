@@ -44,7 +44,9 @@ const Page = () => {
       state.empresa,
     ]);
   const [vagas, setVagas] = useState<IVaga[]>(null);
+  const [vagasRec, setVagasRec] = useState<IVaga[]>(null);
   const [countVagas, setCountVagas] = useState(0);
+  const [countVagasRec, setCountVagasRec] = useState(0);
   const [selectedVaga, setSelectedVaga] = useState<IVaga>(null);
   const scrollDetail = useRef<HTMLDivElement>(null);
 
@@ -82,6 +84,18 @@ const Page = () => {
     }
   };
 
+  const handleRec = async (query: QueueProps) => {
+    try {
+      const clearQuery = omitBy(query, (v) => !v);
+      const { results, count } = await VagaService.getRecs(clearQuery);
+      setSelectedVaga(results.length > 0 ? results[0] : null);
+      setVagasRec(results);
+      setCountVagasRec(count);
+    } catch (error) {
+      toastError('Erro ao buscar vagas RECOMENDACAO');
+    }
+  };
+
   const handleCandidate = async (id: number) => {
     try {
       const item = candidaturas.findIndex((i) => i.vaga == id);
@@ -108,6 +122,15 @@ const Page = () => {
   useEffectTimeout(
     () => {
       handleSearch({
+        empresa,
+        salario: salario && currencyMask.unmask(salario),
+        modelo_trabalho,
+        regime_contratual,
+        jornada_trabalho,
+        termo: termo as string,
+        selecionado: selecionado as unknown as number,
+      });
+      handleRec({
         empresa,
         salario: salario && currencyMask.unmask(salario),
         modelo_trabalho,
@@ -209,31 +232,31 @@ const Page = () => {
                     as={'span'}
                     className="h-4 w-8 bg-base-200 mr-2"
                   >
-                    {countVagas}
+                    {countVagasRec}
                   </TextSkeleton>{' '}
                   vagas)
                 </span>
               </div>
               <div className="w-full">
                 <div className="overflow-x-auto flex snap-x snap-mandatory bg-white p-0 lg:p-4 rounded">
-                  {vagas ? (
-                    vagas?.length > 0 ? (
-                      vagas?.map((vaga, index) => (
+                  {vagasRec ? (
+                    vagasRec?.length > 0 ? (
+                      vagasRec?.map((vagaRec, index) => (
                         <>
                           <CardDetailVaga
-                            key={vaga.id}
-                            vaga={vaga}
-                            isOwner={userEmpresa?.id == vaga.empresa.id}
+                            key={vagaRec.id}
+                            vaga={vagaRec}
+                            isOwner={userEmpresa?.id == vagaRec.empresa.id}
                             onAction={() => {
-                              setSelectedVaga(vaga);
+                              setSelectedVaga(vagaRec);
                             }}
-                            onClick={() => handleCandidate(vaga.id)}
-                            selected={vaga.id === selectedVaga?.id}
+                            onClick={() => handleCandidate(vagaRec.id)}
+                            selected={vagaRec.id === selectedVaga?.id}
                             className="snap-center flex-none lg:w-4/12"
                             canCandidate={true}
                             isFeature={true}
                             isCandidated={candidaturas?.some(
-                              (i) => i.vaga == vaga.id,
+                              (i) => i.vaga == vagaRec.id,
                             )}
                           />
                         </>
