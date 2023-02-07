@@ -43,6 +43,7 @@ const Page = () => {
       state.empresa,
     ]);
   const [candidatos, setCandidatos] = useState<ICandidatoList[]>(null);
+  const [candidatosRec, setCandidatosRec] = useState<ICandidatoList[]>(null);
   const [countCandidatos, setCountCandidatos] = useState(0);
   const [selectedCandidato, setSelectedCandidato] =
     useState<ICandidatoList>(null);
@@ -71,6 +72,18 @@ const Page = () => {
       const { results, count } = await CandidatoService.getAll(clearQuery);
       setSelectedCandidato(results.length > 0 ? results[0] : null);
       setCandidatos(results);
+      // setCountCandidatos(count);
+    } catch (error) {
+      toastError('Erro ao buscar vagas');
+    }
+  };
+
+  const handleRec = async (query: QueueProps) => {
+    try {
+      const clearQuery = omitBy(query, (v) => !v);
+      const { results, count } = await CandidatoService.getRecs(clearQuery);
+      setSelectedCandidato(results.length > 0 ? results[0] : null);
+      setCandidatosRec(results);
       setCountCandidatos(count);
     } catch (error) {
       toastError('Erro ao buscar vagas');
@@ -103,6 +116,14 @@ const Page = () => {
   useEffectTimeout(
     () => {
       handleSearch({
+        salario: salario && currencyMask.unmask(salario),
+        modelo_trabalho,
+        regime_contratual,
+        jornada_trabalho,
+        termo: termo as string,
+        selecionado: selecionado as unknown as number,
+      });
+      handleRec({
         salario: salario && currencyMask.unmask(salario),
         modelo_trabalho,
         regime_contratual,
@@ -201,9 +222,9 @@ const Page = () => {
               </div>
               <div className="w-full">
                 <div className="overflow-x-auto flex snap-x snap-mandatory bg-white p-0 lg:p-4 rounded">
-                  {candidatos ? (
-                    candidatos?.length > 0 ? (
-                      candidatos?.map((candidato, index) => (
+                  {candidatosRec ? (
+                    candidatosRec?.length > 0 ? (
+                      candidatosRec?.map((candidato, index) => (
                         <>
                           <CardDetailCandidato
                             key={candidato.id}
@@ -229,7 +250,7 @@ const Page = () => {
                     range(3).map((_, index) => (
                       <CardDetailCandidato
                         key={index}
-                        vaga={null}
+                        candidato={null}
                         isOwner={false}
                         skeleton={1}
                       />
@@ -276,7 +297,7 @@ const Page = () => {
                   )
                 ) : (
                   <CardDetailCandidato
-                    vaga={null}
+                    candidato={null}
                     isOwner={false}
                     isFeature={false}
                     skeleton={3}
