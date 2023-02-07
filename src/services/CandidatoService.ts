@@ -46,6 +46,23 @@ class CandidatoService extends CRLUDService<
 
     return data;
   }
+
+  async getRecs(query?: any) {
+    let { data } = await axiosInstance.get(`${this.baseUrl}/rec`,{
+      params: query,
+    });
+
+    data.results.forEach((candidato: ICandidatoPerfil) => {
+      candidato.objetivo_profissional.salario = parseFloat(
+        candidato.objetivo_profissional.salario,
+      )
+        .toFixed(2)
+        .replace('.', ',');
+    });
+
+    return data;
+  }
+
 }
 
 export default new CandidatoService();
